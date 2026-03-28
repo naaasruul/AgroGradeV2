@@ -12,12 +12,16 @@ class ClassifierService {
       print("DEBUG: Sedang cuba muatkan model dari assets...");
 
       // 1. Cuba load interpreter
-      _interpreter = await Interpreter.fromAsset('model.tflite');
+      _interpreter = await Interpreter.fromAsset('assets/model.tflite');
       print("DEBUG: Interpreter berjaya di-load!");
 
       // 2. Cuba load labels
       final labelString = await rootBundle.loadString('assets/labels.txt');
-      _labels = labelString.split('\n').where((s) => s.isNotEmpty).toList();
+      _labels = labelString
+          .split('\n')
+          .map((s) => s.trim()) // Remove extra spaces or hidden \r
+          .where((s) => s.isNotEmpty)
+          .toList();
       print("DEBUG: Labels berjaya di-load! Senarai: $_labels");
 
       if (_interpreter != null && _labels != null) {

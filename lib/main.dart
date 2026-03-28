@@ -1,3 +1,4 @@
+import 'package:agrograde/presentation/dashboard.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'presentation/scanner.dart'; // Import page scanner tadi
@@ -20,20 +21,38 @@ Future<void> main() async {
   runApp(AgroGradeApp());
 }
 
+// lib/main.dart (Updated Home)
 class AgroGradeApp extends StatelessWidget {
-  const AgroGradeApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AgroGrade AI',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.green, // Tema Agro, mestilah hijau
-        useMaterial3: true,
+      theme: ThemeData(primarySwatch: Colors.green, useMaterial3: true),
+      home: MainNavigation(),
+    );
+  }
+}
+
+class MainNavigation extends StatefulWidget {
+  @override
+  _MainNavigationState createState() => _MainNavigationState();
+}
+
+class _MainNavigationState extends State<MainNavigation> {
+  int _currentIndex = 0;
+  final List<Widget> _pages = [DashboardPage(), ScannerPage()];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: _pages[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: 'Dashboard'),
+          BottomNavigationBarItem(icon: Icon(Icons.camera_alt), label: 'Scanner'),
+        ],
       ),
-      // 4. Terus buka ScannerPage sebagai main screen
-      home: ScannerPage(), 
     );
   }
 }
