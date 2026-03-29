@@ -1,3 +1,4 @@
+import 'package:agrograde/presentation/result_page.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import '../services/classifier_service.dart';
@@ -16,12 +17,9 @@ class ScannerPage extends StatefulWidget {
 // ignore: library_private_types_in_public_api
 
 class _ScannerPageState extends State<ScannerPage> {
-  bool _isModelReady = false; // Tambah variable ni kat atas class _ScannerPageState
-
   CameraController? _controller;
   final ClassifierService _classifier = ClassifierService();
-  String result = "Sila halakan kamera ke buah";
-  bool isProcessing = false;
+  bool _isProcessing = false;
 
   @override
   void initState() {
@@ -29,116 +27,76 @@ class _ScannerPageState extends State<ScannerPage> {
     _setupScanner();
   }
 
-  DateTime? _lastRun; // Tambah ni kat atas
-
-
   Future<void> _setupScanner() async {
-    setState(() { result = "Loading model..."; });
-
-    try {
-      await _classifier.loadModel();
-      _isModelReady = true; // Set true bila dah habis await
-      print("DEBUG: Model confirm dah ready!");
-    } catch (e) {
-      print("DEBUG ERROR: Model gagal load: $e");
-      setState(() { result = "Model Error!"; });
-      return;
-    }
-
+    await _classifier.loadModel();
     final available = await availableCameras();
-    _controller = CameraController(available[0], ResolutionPreset.low);
+    _controller = CameraController(available[0], ResolutionPreset.medium); // Medium is better for snapshots
     await _controller!.initialize();
-
-    _controller!.startImageStream((cameraImage) {
-      // TAMBAH CHECK NI: Kalau model belum ready, jangan buat apa-apa
-      if (!_isModelReady) return;
-
-      final now = DateTime.now();
-      if (!isProcessing && (_lastRun == null || now.difference(_lastRun!).inMilliseconds > 1000)) {
-        isProcessing = true;
-        _lastRun = now;
-        _analyzeFrame(cameraImage).then((_) => isProcessing = false);
-      }
-    });
-
     if (mounted) setState(() {});
   }
-  @override
-  void dispose() {
-    _controller?.dispose();
-    super.dispose();
-  }
 
-  Future<void> _analyzeFrame(CameraImage cameraImage) async {
+  Future<void> _captureAndAnalyze() async {
+    if (_isProcessing || _controller == null || !_controller!.value.isInitialized) return;
+
+    setState(() { _isProcessing = true; });
+
     try {
-      print("DEBUG: Memulakan analisa frame...");
+      // 1. Capture the image
+      final XFile photo = await _controller!.takePicture();
 
-      // 1. Convert (Punca utama lag)
-      final image = _convertYUV420ToImage(cameraImage);
+      // 2. Convert file to image object
+      final Uint8List bytes = await photo.readAsBytes();
+      final img.Image? capturedImage = img.decodeImage(bytes);
 
-      // 2. Predict
-      final prediction = _classifier.predict(image);
+      if (capturedImage != null) {
+        // 3. Resize and Predict
+        final resizedImage = img.copyResize(capturedImage, width: 224, height: 224);
+        final prediction = _classifier.predict(resizedImage);
 
-      if (mounted) {
-        setState(() {
-          result = "Dikesan: $prediction";
-        });
-      }
-      print("DEBUG: Analisa selesai. Hasil: $prediction");
-
-    } catch (e) {
-      print("DEBUG ERROR dalam _analyzeFrame: $e");
-    }
-  }
-
-  // Helper utk convert format kamera phone ke format Image
-  img.Image _convertYUV420ToImage(CameraImage image) {
-    try {
-      final int width = image.width;
-      final int height = image.height;
-
-      // Plane 0 adalah Y (Luminance/Hitam-Putih)
-      // Kita buat Image kosong dulu
-      var converted = img.Image(width: width, height: height);
-
-      // Ambil bytes dari Plane 0
-      final Uint8List plane0 = image.planes[0].bytes;
-
-      // Isi pixel satu-satu (Cara ni lambat sikit tapi TAKKAN crash)
-      for (int y = 0; y < height; y++) {
-        for (int x = 0; x < width; x++) {
-          final int index = y * width + x;
-          if (index < plane0.length) {
-            final int grey = plane0[index];
-            // Set pixel sebagai grayscale (R=G=B)
-            converted.setPixelRgb(x, y, grey, grey, grey);
-          }
+        // 4. Navigate to Result Screen
+        if (mounted) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ResultPage(
+                prediction: prediction,
+                imagePath: photo.path,
+              ),
+            ),
+          );
         }
       }
-
-      // Resize terus ke saiz yang AI nak (224x224)
-      return img.copyResize(converted, width: 224, height: 224);
     } catch (e) {
-      print("DEBUG ERROR dalam conversion: $e");
-      // Return image kosong 1x1 supaya tak crash kat predict
-      return img.Image(width: 1, height: 1);
+      print("Error: $e");
+    } finally {
+      if (mounted) setState(() { _isProcessing = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
     if (_controller == null || !_controller!.value.isInitialized) {
-      return Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
     return Scaffold(
       appBar: AppBar(title: Text("AgroGrade Scanner")),
-      body: Column(
+      body: Stack(
         children: [
-          Expanded(child: CameraPreview(_controller!)),
-          Container(
-            padding: EdgeInsets.all(20),
-            child: Text(result, style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.green)),
-          )
+          CameraPreview(_controller!),
+          // Overlay UI
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 30),
+              child: FloatingActionButton(
+                backgroundColor: Colors.white,
+                onPressed: _captureAndAnalyze,
+                child: _isProcessing
+                    ? const CircularProgressIndicator()
+                    : const Icon(Icons.camera, color: Colors.green, size: 40),
+              ),
+            ),
+          ),
         ],
       ),
     );

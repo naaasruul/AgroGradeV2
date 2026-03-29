@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "421719141299",
+    "project_id": "fruit-classification-f6356",
+    "storage_bucket": "fruit-classification-f6356.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:421719141299:android:c3f1ed54ebcc0f5f8d79c6",
+        "android_client_info": {
+          "package_name": "com.example.agrograde"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfmNbGa9V65BH6cYk0PLAIsW83gRLbuLQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:421719141299:android:6d806157b2f5c7868d79c6",
+        "android_client_info": {
+          "package_name": "fruit.company.com"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBfmNbGa9V65BH6cYk0PLAIsW83gRLbuLQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
