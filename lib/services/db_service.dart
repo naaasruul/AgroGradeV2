@@ -5,7 +5,7 @@ class DbService {
 
   Future<void> saveScanResult(String label) async {
     final now = DateTime.now();
-    final String status = label.contains('Rosak') ? 'Rosak' : 'Elok';
+    final String status = label.contains('Rotten') ? 'Rosak' : 'Elok';
     final String fruitName = label.split('_')[0];
 
     // 1. Simpan history (untuk list aktiviti)

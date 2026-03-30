@@ -18,7 +18,7 @@ class _ResultPageState extends State<ResultPage> {
 
   // Data tambahan untuk Nutrisi & Resipi
   Map<String, dynamic> getFruitInfo(String label) {
-    if (label.contains('Rosak')) {
+    if (label.contains('Rotten')) {
       return {
         "status": "Rosak / Hampir Rosak",
         "nutrisi": "Nutrisi berkurang disebabkan proses pengoksidaan.",

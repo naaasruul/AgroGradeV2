@@ -1,8 +1,8 @@
-0 Fresh Apple
-1 Fresh Tomato
-2 Rotten Apple
-3 Rotten Tomato
-4 Fresh Banana
-5 Rotten Banana
-6 Rotten Cucumber
-7 Fresh Cucumber
+Fresh Apple
+Fresh Tomato
+Rotten Apple
+Rotten Tomato
+Fresh Banana
+Rotten Banana
+Rotten Cucumber
+Fresh Cucumber
